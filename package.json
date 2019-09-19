@@ -13,9 +13,13 @@
     "test": "echo \"Write tests! -> https://gatsby.dev/unit-testing \""
   },
   "dependencies": {
+    "axios": "^0.19.0",
     "gatsby": "^2.15.18",
+    "gatsby-node-helpers": "^0.3.0",
+    "gatsby-source-filesystem": "^2.1.24",
     "react": "^16.9.0",
-    "react-dom": "^16.9.0"
+    "react-dom": "^16.9.0",
+    "smartsheet": "^2.77.4"
   },
   "devDependencies": {
     "prettier": "^1.18.2"
