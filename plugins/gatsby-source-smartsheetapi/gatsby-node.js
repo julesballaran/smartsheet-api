@@ -1,4 +1,5 @@
 const { createRemoteFileNode } = require(`gatsby-source-filesystem`)
+const camelCase = require('camelcase')
 const axios = require("axios")
 const createNodeHelpers = require("gatsby-node-helpers").default
 const client = require('smartsheet')
@@ -22,28 +23,6 @@ exports.sourceNodes = async ({ actions, store, cache, createNodeId }, configOpti
         }
     });
 
-    for(const dev of data.rows) {
-      var imageId = dev.cells[0].image.id
-      let image = await smartsheet.images.listImageUrls({
-        body: [{
-          imageId: imageId
-        }]
-      })
-      try {
-        await createRemoteFileNode({
-          url: image.imageUrls[0].url,
-          cache,
-          store,
-          createNode,
-          createNodeId,
-          name: imageId,
-          ext: '.jpg',
-        })
-      } catch (error) {
-        console.warn('error creating node', error)
-      }
-    }
-
     let devs = []
     const rowCells = data.rows.map(res => res.cells)
     rowCells.forEach((cellData, i) => {
@@ -52,28 +31,34 @@ exports.sourceNodes = async ({ actions, store, cache, createNodeId }, configOpti
 
       cellData.forEach(cell => {
         const column = data.columns.find(col => col.id === cell.columnId)
-        if(column.title.match(/name/i)) {
-          obj.name = cell.displayValue
-        } else if (column.title.match(/summary/i)) {
-          obj.summary = cell.displayValue
-        } else if (column.title.match(/language/i)) {
-          obj.langSkills = cell.displayValue
-        } else if (column.title.match(/technologies/i)) {
-          obj.techSkills = cell.displayValue
-        } else if (column.title.match(/status/i)) {
-          obj.status = cell.displayValue
-        } else if (column.title.match(/location/i)) {
-          obj.location = cell.displayValue
-        } else if (column.title.match(/time/i)) {
-          obj.availabily = cell.displayValue
-        } else if (column.title.match(/position/i)) {
-          obj.position = cell.displayValue
-        } else if (column.title.match(/headshot/i)) {
-          obj.image = cell.image
-        } 
+        column.title.match(/headshot/i) ? 
+          obj[camelCase(column.title)] = cell.image : 
+          obj[camelCase(column.title)] = cell.displayValue
       })
 
       devs.push(obj)
     })
+
+    // for(const dev of devs) {
+    //   let image = await smartsheet.images.listImageUrls({
+    //     body: [{
+    //       imageId: dev.image.id
+    //     }]
+    //   })
+    //   try {
+    //     await createRemoteFileNode({
+    //       url: image.imageUrls[0].url,
+    //       cache,
+    //       store,
+    //       createNode,
+    //       createNodeId,
+    //       name: dev.image.id,
+    //       ext: '.jpg',
+    //     })
+    //   } catch (error) {
+    //     console.warn('error creating node', error)
+    //   }
+    // }
+
     createNode(prepareSheets({devs}))
 }
